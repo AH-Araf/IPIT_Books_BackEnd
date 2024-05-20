@@ -2,6 +2,7 @@
 const express = require('express');
 const cors = require('cors');
 const { ObjectId, MongoClient, ServerApiVersion } = require('mongodb');
+const stripe = require('stripe')(process.env.PAYMENT_SECRET_KEY)
 require('dotenv').config();
 
 // port
@@ -32,6 +33,46 @@ async function run() {
         const bookCollection = client.db('IPIT-Books').collection('books');
         const messageCollection = client.db('IPIT-Books').collection('message');
         const authorCollection = client.db('IPIT-Books').collection('author');
+        const orderCollection = client.db('IPIT-Books').collection('order');
+
+
+    
+
+        // Other endpoints...
+
+        // Stripe payment endpoint
+        app.post('/create-payment-intent', async (req, res) => {
+            const { totalPrice } = req.body; // Ensure totalPrice is passed correctly from frontend
+            const amount = parseInt(totalPrice * 100); // Convert to cents
+
+            try {
+                const paymentIntent = await stripe.paymentIntents.create({
+                    amount: amount,
+                    currency: 'usd',
+                    payment_method_types: ['card']
+                });
+
+                res.send({
+                    clientSecret: paymentIntent.client_secret
+                });
+            } catch (error) {
+                res.status(500).send({ error: error.message });
+            }
+        });
+
+
+        app.get('/orders', async (req, res) => {
+            let a = {};
+            const b = orderCollection.find(a);
+            const c = await b.toArray();
+            res.send(c);
+        });
+        app.post('/postOrder', async (req, res) => {
+            const a = req.body;
+            const b = await orderCollection.insertOne(a);
+            res.send(b);
+        });
+
 
         // Books-------------------------------------------
         app.get('/allAuthors', async (req, res) => {
