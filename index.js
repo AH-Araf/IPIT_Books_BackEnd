@@ -24,7 +24,6 @@ const client = new MongoClient(uri, {
     }
 });
 
-
 async function run() {
     try {
 
@@ -74,7 +73,7 @@ async function run() {
         });
 
 
-        // Books-------------------------------------------
+        // Author
         app.get('/allAuthors', async (req, res) => {
             let a = {};
             const b = authorCollection.find(a);
@@ -99,6 +98,7 @@ async function run() {
             }
         });
         
+    
         app.post('/postAuthor', async (req, res) => {
             const a = req.body;
             const b = await authorCollection.insertOne(a);
@@ -211,6 +211,24 @@ async function run() {
                 res.status(500).send('Inter Server Error---------')
             }
         });
+
+        app.put('/updateBook/:id', async (req, res) => {
+            const id = req.params.id;
+            const updatedBook = req.body;
+            const query = { _id: new ObjectId(id) };
+            try {
+                const result = await bookCollection.updateOne(query, { $set: updatedBook });
+                if (result.modifiedCount === 1) {
+                    res.status(200).json({ message: 'Updated Successfully' });
+                } else {
+                    res.status(404).json({ error: "Book not Found" });
+                }
+            } catch (error) {
+                console.error(error);
+                res.status(500).send('Internal Server Error');
+            }
+        });
+
 
 
     } finally {
