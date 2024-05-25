@@ -34,7 +34,6 @@ async function run() {
         const authorCollection = client.db('IPIT-Books').collection('author');
         const orderCollection = client.db('IPIT-Books').collection('order');
 
-
     
 
         // Other endpoints...
@@ -66,6 +65,20 @@ async function run() {
             const c = await b.toArray();
             res.send(c);
         });
+
+        app.get('/userOrder', async (req, res) => {
+            let query = {};
+
+            if (req.query.user) {
+                query = {
+                    user: req.query.user
+                }
+            }
+            const cursor = orderCollection.find(query);
+            const a = await cursor.toArray();
+            res.send(a);
+        })
+
         app.post('/postOrder', async (req, res) => {
             const a = req.body;
             const b = await orderCollection.insertOne(a);
