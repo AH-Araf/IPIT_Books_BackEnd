@@ -34,9 +34,34 @@ async function run() {
         const authorCollection = client.db('IPIT-Books').collection('author');
         const orderCollection = client.db('IPIT-Books').collection('order');
 
-    
+        const reviewCollection = client.db('IPIT-Books').collection('review');
+        app.get('/review', async (req, res) => {
+            let a = {};
+            const b = reviewCollection.find(a).sort({ _id: -1 });
+            const c = await b.toArray();
+            res.send(c);
+        });
 
-        // Other endpoints...
+        app.get('/userReview', async (req, res) => {
+            let query = {};
+
+            if (req.query.bookId) {
+                query = {
+                    bookId: req.query.bookId
+                }
+            }
+            const cursor = reviewCollection.find(query).sort({ _id: -1 });
+            const a = await cursor.toArray();
+            res.send(a);
+        })
+
+        app.post('/review', async (req, res) => {
+            const a = req.body;
+            const b = await reviewCollection.insertOne(a);
+            res.send(b);
+        });
+
+
 
         // Stripe payment endpoint
         app.post('/create-payment-intent', async (req, res) => {
@@ -61,7 +86,7 @@ async function run() {
 
         app.get('/orders', async (req, res) => {
             let a = {};
-            const b = orderCollection.find(a);
+            const b = orderCollection.find(a).sort({ _id: -1 });
             const c = await b.toArray();
             res.send(c);
         });
@@ -74,7 +99,7 @@ async function run() {
                     user: req.query.user
                 }
             }
-            const cursor = orderCollection.find(query);
+            const cursor = orderCollection.find(query).sort({ _id: -1 });
             const a = await cursor.toArray();
             res.send(a);
         })
@@ -89,7 +114,7 @@ async function run() {
         // Author
         app.get('/allAuthors', async (req, res) => {
             let a = {};
-            const b = authorCollection.find(a);
+            const b = authorCollection.find(a).sort({ _id: -1 });
             const c = await b.toArray();
             res.send(c);
         });
@@ -110,8 +135,8 @@ async function run() {
                 res.status(500).send('Inter Server Error---------')
             }
         });
-        
-    
+
+
         app.post('/postAuthor', async (req, res) => {
             const a = req.body;
             const b = await authorCollection.insertOne(a);
@@ -122,11 +147,11 @@ async function run() {
         // Message-------------------------------------------
         app.get('/message', async (req, res) => {
             let a = {};
-            const b = messageCollection.find(a);
+            const b = messageCollection.find(a).sort({ _id: -1 });
             const c = await b.toArray();
             res.send(c);
         });
-        
+
         app.post('/message', async (req, res) => {
             const a = req.body;
             const b = await messageCollection.insertOne(a);
@@ -140,6 +165,7 @@ async function run() {
             const a = await cursor.toArray();
             res.send(a);
         });
+
         // Create(post)
         app.post('/users', async (req, res) => {
             const user = req.body;
@@ -167,10 +193,33 @@ async function run() {
             res.send(a);
         })
 
+        // Update user
+        app.put('/users/:email', async (req, res) => {
+            const email = req.params.email;
+            const updatedUser = req.body;
+
+            const query = { email: email };
+            const update = {
+                $set: {
+                    name: updatedUser.name,
+                    image: updatedUser.image,
+                }
+            };
+
+            try {
+                const result = await userCollection.updateOne(query, update);
+                res.send(result);
+            } catch (error) {
+                console.error("Error updating user data:", error);
+                res.status(500).send({ error: "Failed to update user data" });
+            }
+        });
+
+
         // Books-------------------------------------------
         app.get('/allBooks', async (req, res) => {
             let a = {};
-            const b = bookCollection.find(a);
+            const b = bookCollection.find(a).sort({ _id: -1 });
             const c = await b.toArray();
             res.send(c);
         });
